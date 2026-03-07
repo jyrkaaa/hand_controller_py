@@ -28,11 +28,28 @@ CENTER_X = FRAME_WIDTH // 2
 CENTER_Y = FRAME_HEIGHT // 2
 SENSITIVITY = 0.5  # Scale movement (0-1)
 
+frame_count = 0
+start_time = time.time()
 while True:
     ret, frame = cap.read()
     if not ret:
         break
 
+    # FPS
+    frame_count += 1
+    current_time = time.time()
+    elapsed_time = current_time - start_time
+    
+    if elapsed_time > 0:  # Avoid division by zero
+        fps = frame_count / elapsed_time
+        print(f"FPS: {fps:.2f}")
+    
+    #Optional: Reset every second for real-time display
+    if elapsed_time >= 1.0:
+        frame_count = 0
+        start_time = current_time
+    
+    
     # Flip the frame horizontally for a mirror effect
     frame = cv2.flip(frame, 1)
 
@@ -54,12 +71,13 @@ while True:
         # Convert normalized coordinates to pixel coordinates
         center_x = cx * FRAME_WIDTH
         center_y = cy * FRAME_HEIGHT
+        print("Hand center (pixels): ({:.2f}, {:.2f})".format(center_x, center_y))
 
         # Map to joystick (-1 to 1)
-        joystick_x = ((center_x - CENTER_X) / CENTER_X) * SENSITIVITY
-        joystick_y = ((center_y - CENTER_Y) / CENTER_Y) * SENSITIVITY  # Invert if needed
-        joystick_x = max(-1, min(1, joystick_x))
-        joystick_y = max(-1, min(1, joystick_y))
+        #joystick_x = ((center_x - CENTER_X) / CENTER_X) * SENSITIVITY
+        #joystick_y = ((center_y - CENTER_Y) / CENTER_Y) * SENSITIVITY  # Invert if needed
+        #joystick_x = max(-1, min(1, joystick_x))
+        #joystick_y = max(-1, min(1, joystick_y))
 
         # Optional: Draw hand landmarks for debug
         drawing_utils.draw_landmarks(frame, hand_landmarks, vision.HandLandmarksConnections.HAND_CONNECTIONS)
