@@ -1,0 +1,59 @@
+# Compiled Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Cython extensions
+*.so
+
+# Build and distribution directories
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Virtual environments
+venv/
+env/
+ENV/
+pyvenv.cfg
+bin/
+include/
+lib/
+share/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Logs and temporary files
+*.log
+*.tmp
+
+# Testing and coverage
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+
+# Package management
+Pipfile.lock
+poetry.lock
+
+# MediaPipe and OpenCV artifacts (if applicable)
+*.task
+*.pb
+
+# Virtual environment files
+pyvenv.cfg
+bin/
+include/
+lib/
+share/
