@@ -6,13 +6,12 @@ from mediapipe.tasks.python import vision
 import pyautogui
 import threading
 
-# Get screen size
 screen_width, screen_height = pyautogui.size()
 
-# Open webcam
 cap = cv2.VideoCapture(0, cv2.CAP_AVFOUNDATION)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, screen_width)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, screen_height)
+
 # Model path (downloaded from https://developers.google.com/mediapipe/solutions/vision/hand_landmarker)
 model_path = 'hand_landmarker.task'
 BaseOptions = mp.tasks.BaseOptions
@@ -21,8 +20,6 @@ HandLandmarkerOptions = mp.tasks.vision.HandLandmarkerOptions
 HandLandmarkerResult = mp.tasks.vision.HandLandmarkerResult
 threshold = 10
 
-print("Screen size: ", screen_width, screen_height)
-# Global variable to hold the latest image with overlay
 latest_image = None
 
 # Global variables for throttling mouse movement
@@ -33,10 +30,8 @@ def map_to_screen(x, y):
     center_y = screen_height / 2
     screen_x = center_x - (x - 0.5) * screen_width * 2
     screen_y = center_y + (y - 0.5) * screen_height * 2
-    print("Mapping MediaPipe coordinates to screen: ", screen_x, screen_y)
     return screen_x, screen_y
 
-# Function to handle mouse movement in a separate thread
 def move_mouse(screen_x, screen_y):
     pyautogui.moveTo(screen_x, screen_y, duration=0)
 
@@ -57,7 +52,6 @@ def print_result(result: HandLandmarkerResult, output_image: mp.Image, timestamp
     
     latest_image = output_image.numpy_view()
 
-# ...existing code...
 options = HandLandmarkerOptions(
     base_options=BaseOptions(model_asset_path=model_path),
     running_mode=vision.RunningMode.LIVE_STREAM,
@@ -79,11 +73,12 @@ with HandLandmarker.create_from_options(options) as landmarker:
         timestamp_ms = int(cv2.getTickCount() / cv2.getTickFrequency() * 1000)
         landmarker.detect_async(mp_image, timestamp_ms)
         
-        # Display the latest image with overlay if available
+        # Debug
         if latest_image is not None:
             cv2.imshow('Hand Tracking1', latest_image)  # Flip back for correct orientation
         else:
             cv2.imshow('Hand Tracking2', image)  # Fallback to flipped raw image
+        
         
         if cv2.waitKey(5) & 0xFF == 27:  # ESC to quit
             break
