@@ -1,10 +1,13 @@
-# ...existing code...
-
 import cv2
 import mediapipe as mp
 from mediapipe.tasks.python import vision
 import pyautogui
-import threading
+import socket
+
+# UDP settings
+UDP_IP = "127.0.0.1"  # Change to your Unity machine's IP if needed
+UDP_PORT = 5055         # Use a free port, match in Unity
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 screen_width, screen_height = pyautogui.size()
 
@@ -39,24 +42,49 @@ def move_mouse(screen_x, screen_y):
 def print_result(result: HandLandmarkerResult, output_image: mp.Image, timestamp_ms: int):
     global latest_image, last_x, last_y
     if result.hand_landmarks:
-        # Use only the middle finger bottom landmark (index 9)
-        middle_finger_bottom = result.hand_landmarks[0][9]
-        mp_x, mp_y = middle_finger_bottom.x, middle_finger_bottom.y
-        screen_x, screen_y = map_to_screen(mp_x, mp_y)
-        
-        # Throttle and move mouse only if position changed significantly
-        if last_x is None or abs(screen_x - last_x) > threshold or abs(screen_y - last_y) > threshold:
-            threading.Thread(target=move_mouse, args=(screen_x, screen_y)).start()
-            last_x, last_y = screen_x, screen_y
-        
-    
-    latest_image = output_image.numpy_view()
+        # Draw landmarks and connections on the image
+        img = output_image.numpy_view().copy()
+        hand_landmarks = result.hand_landmarks[0]
+        # Draw points
+        for lm in hand_landmarks:
+            h, w, _ = img.shape
+            cx, cy = int(lm.x * w), int(lm.y * h)
+            cv2.circle(img, (cx, cy), 6, (0, 255, 0), -1)
+        # Draw connections (using MediaPipe's hand connections)
+        HAND_CONNECTIONS = [
+            (0,1),(1,2),(2,3),(3,4),      # Thumb
+            (0,5),(5,6),(6,7),(7,8),      # Index
+            (5,9),(9,10),(10,11),(11,12), # Middle
+            (9,13),(13,14),(14,15),(15,16), # Ring
+            (13,17),(17,18),(18,19),(19,20), # Pinky
+            (0,17) # Palm base
+        ]
+        for start, end in HAND_CONNECTIONS:
+            x1, y1 = int(hand_landmarks[start].x * w), int(hand_landmarks[start].y * h)
+            x2, y2 = int(hand_landmarks[end].x * w), int(hand_landmarks[end].y * h)
+            cv2.line(img, (x1, y1), (x2, y2), (255, 0, 0), 2)
+
+        # --- UDP SEND: send all 21 landmarks as x1,y1,x2,y2,...,x21,y21,z1,z2,...z21 ---
+        # Format: x1,y1,z1,x2,y2,z2,...,x21,y21,z21 (normalized floats)
+        landmark_data = []
+        for lm in hand_landmarks:
+            landmark_data.extend([lm.x, lm.y, lm.z])
+        # Convert to comma-separated string
+        msg = ','.join(f'{v:.6f}' for v in landmark_data)
+        try:
+            sock.sendto(msg.encode('utf-8'), (UDP_IP, UDP_PORT))
+        except Exception as e:
+            print(f"UDP send error: {e}")
+
+        latest_image = img
+    else:
+        latest_image = output_image.numpy_view()
 
 options = HandLandmarkerOptions(
     base_options=BaseOptions(model_asset_path=model_path),
     running_mode=vision.RunningMode.LIVE_STREAM,
-    min_hand_detection_confidence=0.8,
-    min_hand_presence_confidence=0.8,
+    min_hand_detection_confidence=0.4,
+    min_hand_presence_confidence=0.4,
     min_tracking_confidence=0.2,
     num_hands=1,
     result_callback=print_result
@@ -76,10 +104,10 @@ with HandLandmarker.create_from_options(options) as landmarker:
         # Debug
         if latest_image is not None:
             cv2.imshow('Hand Tracking1', latest_image)  # Flip back for correct orientation
-        else:
-            cv2.imshow('Hand Tracking2', image)  # Fallback to flipped raw image
+        #else:
+        #    cv2.imshow('Hand Tracking2', image)  # Fallback to flipped raw image
         
-        
+
         if cv2.waitKey(5) & 0xFF == 27:  # ESC to quit
             break
 
