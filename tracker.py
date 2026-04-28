@@ -1,3 +1,5 @@
+import argparse
+
 import cv2
 import mediapipe as mp
 from mediapipe.tasks.python import vision
@@ -123,6 +125,14 @@ class HandTracker:
 
 
 if __name__ == "__main__":
-    config = HandTrackerConfig(mode="preview")  # "live" or "preview"
+    parser = argparse.ArgumentParser(description="Hand Tracker")
+    parser.add_argument("--mode", choices=["p", "l"], default="p", help="p = preview, l = live")
+    parser.add_argument("--udp-ip", default="127.0.0.1")
+    parser.add_argument("--udp-port", type=int, default=5055)
+    parser.add_argument("--camera", type=int, default=0)
+    args = parser.parse_args()
+
+    mode = "preview" if args.mode == "p" else "live"
+    config = HandTrackerConfig(mode=mode, udp_ip=args.udp_ip, udp_port=args.udp_port, camera_index=args.camera)
     tracker = HandTracker(config)
     tracker.run()
