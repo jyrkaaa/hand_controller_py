@@ -1,7 +1,5 @@
 
 # Hand Tracker
->[!CAUTION]
->!NB! IN DEVELOPMENT
 
 ## Basic Info
 Should be python based hand tracker using cv2 library for camera intergration and mediapipe for its hand tracker model.
@@ -14,10 +12,17 @@ Project uses googles LM [hand_landmarker](https://ai.google.dev/edge/mediapipe/s
 ## Prerequisites to running programm
 Required libraries are in the requirements.txt file, recommended to be installed with latest version of pip.
 
+## To run
+Program can be activated with python (for example python3) and running the program name.
+Has flags to configure settings:
+--mode : preview mode, can be p for preview and l live.
+--udp-ip: default="127.0.0.1")
+--udp-port: port for destination, type=int, default=5055)
+
+default command from directory containing the file:
+python3 tracket.py --mode p
 
 ## To do
 - Test performance improvments
-- Test impact of hand vs point of hand tracking (currently only one point tracked)
-- Reserch packaging the file to be runnable without python (.exe file)
-- Research why hand detection is slow (hand tracking is fine)
-  
+- Research packaging the file to be runnable without python (.exe file)
+- UI for user friendly usability  
