@@ -136,3 +136,4 @@ if __name__ == "__main__":
     config = HandTrackerConfig(mode=mode, udp_ip=args.udp_ip, udp_port=args.udp_port, camera_index=args.camera)
     tracker = HandTracker(config)
     tracker.run()
+    
